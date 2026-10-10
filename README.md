@@ -16,7 +16,7 @@ No audio files and no images: every sound and every shape is made in code.
 
 ## How it stays in time
 
-Notes are scheduled a tenth of a second ahead on the audio clock, which is exact, and each step is queued. The animation loop fires a step's lights when the audio clock reaches it, so sight and sound share one clock however busy the page is.
+Notes are scheduled a tenth of a second ahead on the audio clock, which is exact, and each step is queued. The animation loop fires a step's lights when the audio clock, less the output latency, reaches it, so sight and sound share one clock however busy the page is.
 
 ## Performance
 
@@ -45,7 +45,7 @@ Nothing that moves carries a CSS filter. Glows are painted once behind the ghost
 The repo doubles as a package, which is how the portfolio site runs it. Install it from GitHub at a version tag:
 
 ```bash
-npm install github:Dekrayzis/ghost-jam#v1.1.1
+npm install github:Dekrayzis/ghost-jam#v1.1.2
 ```
 
 Then import the component and its stylesheet (the app needs Sass):
@@ -57,7 +57,7 @@ import "ghost-jam/styles.scss";
 <GhostJam />;
 ```
 
-It ships as TypeScript source, so a Next.js app lists it in `transpilePackages` in `next.config.ts`. React 19 is a peer dependency. To pause it along with the rest of the page, set `data-motion="paused"` on `<html>`; it also follows the system's reduced-motion setting.
+It ships as TypeScript source, so a Next.js app lists it in `transpilePackages` in `next.config.ts`. React 19 is a peer dependency. Setting `data-motion="paused"` on `<html>` (a host page's own pause switch) stills its visuals: the wall, ghosts, crowd and bat hold still, as they do with the system's reduced-motion setting. The music is separate and keeps playing until the visitor pauses it with the play button.
 
 ## Run it
 

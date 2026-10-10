@@ -4,10 +4,10 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { Bat, Booth, Fan, Ghost } from "./art";
 import { CROWD_WAVES, FANS, FANS_PER_WAVE } from "./crowd";
 import { lessMotion } from "./motion";
-import { LOOP, STEP, STEPS_PER_BAR, STEPS_PER_BEAT, playStep } from "./music";
+import { BEAT, LOOP, STEP, STEPS_PER_BAR, STEPS_PER_BEAT, playStep } from "./music";
 import { LIGHTS } from "./palette";
 import { pick } from "./random";
-import { makeSynth, type Synth } from "./synth";
+import { FADE, makeSynth, type Band, type Synth } from "./synth";
 
 /**
  * Ghost Jam: a Halloween FizzBuzz light wall (Boo for threes, Scary for fives,
@@ -16,7 +16,8 @@ import { makeSynth, type Synth } from "./synth";
  * fills the floor, a wave each loop, until the show sells out (crowd.ts).
  *
  * Sight and sound share one clock: every note is scheduled a little ahead on
- * the audio clock, and the visual for it fires when the clock reaches it.
+ * the audio clock, and the visual for it fires when the clock, less the
+ * output latency, reaches it: when the note is heard, not when it is sent.
  *
  * Flashing is kept slow (the big word appears once a bar), and with less
  * motion on, the wall, ghosts and crowd hold still while the music plays.
@@ -53,6 +54,7 @@ type Booked = { t: number; step: number };
 
 /** The running sequencer: its timers, where it has got to, and what's booked. */
 type Engine = {
+  band: Band;
   timer: number;
   frame: number;
   start: number;
@@ -80,6 +82,8 @@ export function GhostJam() {
   // second sequencer.
   const starting = useRef(false);
   const timers = useRef(new Set<number>());
+  // The pending suspend after a pause, cancelled if play is pressed first.
+  const sleep = useRef(0);
 
   /** setTimeout, remembered so it can be cleared when the component goes. */
   const later = (fn: () => void, ms: number) => {
@@ -132,32 +136,55 @@ export function GhostJam() {
   const start = async () => {
     if (starting.current || engine.current) return;
     starting.current = true;
+    window.clearTimeout(sleep.current);
     synth.current ??= makeSynth();
     const s = synth.current;
     try {
       await s.ctx.resume();
+    } catch {
+      return;
     } finally {
       starting.current = false;
     }
+    // The component may have gone (closing the context) while the audio woke.
+    if (synth.current !== s || engine.current) return;
+
+    /** The audio clock as heard: what is coming out of the speakers now. */
+    const heard = () => s.ctx.currentTime - (s.ctx.outputLatency || s.ctx.baseLatency || 0);
 
     const t0 = s.ctx.currentTime + START_DELAY;
-    const e: Engine = { timer: 0, frame: 0, start: t0, next: t0, step: 0, loops: 1, queue: [] };
+    const e: Engine = { band: s.band(), timer: 0, frame: 0, start: t0, next: t0, step: 0, loops: 1, queue: [] };
     engine.current = e;
 
     // Book every step that falls inside the look-ahead window.
     e.timer = window.setInterval(() => {
-      while (e.next < s.ctx.currentTime + LOOKAHEAD) {
-        playStep(s, e.step, e.next);
+      const now = s.ctx.currentTime;
+      // After a stall, skip the steps whose time has passed rather than
+      // playing them all at once, and carry on in time.
+      if (e.next < now) {
+        const missed = Math.ceil((now - e.next) / STEP);
+        e.next += missed * STEP;
+        e.step += missed;
+      }
+      while (e.next < now + LOOKAHEAD) {
+        playStep(e.band, e.step, e.next);
         e.queue.push({ t: e.next, step: e.step });
         e.next += STEP;
         e.step += 1;
       }
+      // With the animation loop paused (a hidden tab), only the latest steps
+      // matter: keep the queue from growing.
+      if (e.queue.length > 64) e.queue.splice(0, e.queue.length - 64);
     }, SCHEDULE_EVERY_MS);
 
-    // Fire the visuals as the audio clock reaches them, and move the bar.
+    // Fire the visuals as the notes are heard, and move the bar. Only the
+    // latest step that is due gets its visuals; any older ones are dropped,
+    // so a return to a hidden tab doesn't replay a backlog in one frame.
     const tick = () => {
-      const now = s.ctx.currentTime;
-      while (e.queue.length && e.queue[0].t <= now) onStep(e.queue.shift()!.step);
+      const now = heard();
+      let due = 0;
+      while (due < e.queue.length && e.queue[due].t <= now) due++;
+      if (due) onStep(e.queue.splice(0, due)[due - 1].step);
       const elapsed = Math.max(0, now - e.start);
       const pos = elapsed % LOOP;
       if (bar.current) bar.current.style.scale = `${pos / LOOP} 1`;
@@ -183,16 +210,24 @@ export function GhostJam() {
     if (e) {
       window.clearInterval(e.timer);
       cancelAnimationFrame(e.frame);
+      // Fade out and cut loose everything this run booked, so none of it
+      // (notes ahead, the pad, the echo) sounds when play is pressed again.
+      e.band.end();
       engine.current = null;
     }
+    window.clearTimeout(sleep.current);
     if (closing) {
       timers.current.forEach((id) => window.clearTimeout(id));
       timers.current.clear();
-      void synth.current?.ctx.close();
+      void synth.current?.ctx.close().catch(() => {});
       synth.current = null;
       return;
     }
-    void synth.current?.ctx.suspend();
+    // Rest the audio once the fade is done.
+    const s = synth.current;
+    sleep.current = window.setTimeout(() => {
+      if (!engine.current && synth.current === s) void s?.ctx.suspend().catch(() => {});
+    }, FADE * 1000 + 60);
     clearWall();
     setPlaying(false);
   };
@@ -210,7 +245,12 @@ export function GhostJam() {
     .join(" · ");
 
   return (
-    <div ref={scene} className={`ghost-jam${playing ? " is-playing" : ""}`}>
+    <div
+      ref={scene}
+      className={`ghost-jam${playing ? " is-playing" : ""}`}
+      // The dance is timed in beats, so it keeps in step if the tempo changes.
+      style={{ "--beat": `${BEAT}s` } as CSSProperties}
+    >
       {/* The FizzBuzz wall: 1 to 100, lit in time with the music. */}
       <ol className="ghost-jam__wall" aria-label="Halloween FizzBuzz from 1 to 100">
         {CELLS.map((c, i) => (
@@ -286,14 +326,13 @@ export function GhostJam() {
       <div className="ghost-jam__player">
         <div className="ghost-jam__eq" aria-hidden="true">
           {Array.from({ length: 9 }, (_, i) => (
-            <span key={i} style={{ animationDelay: `${-((i * 0.13) % 0.5)}s` }} />
+            <span key={i} style={{ animationDelay: `calc(var(--beat) * ${-((i * 0.26) % 1).toFixed(2)})` }} />
           ))}
         </div>
         <div className="ghost-jam__controls">
           <button
             type="button"
             className="ghost-jam__play"
-            aria-pressed={playing}
             onClick={() => (playing ? stop() : start())}
           >
             <span className="ghost-jam__play-icon" aria-hidden="true">

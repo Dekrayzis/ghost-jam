@@ -6,8 +6,13 @@ import { paint, type Light } from "./palette";
  * that move have their own class, so _ghost-jam.scss can animate each.
  */
 
-/** Ids for an SVG's gradients, unique per drawing, so copies don't clash. */
-const useSvgId = () => useId().replace(/:/g, "");
+/**
+ * Ids for an SVG's gradients, unique per drawing, so copies don't clash. They
+ * are used in url(#id) references, so anything but letters, digits, _ and -
+ * is stripped. React 19.2's ids (like _r_1_) pass through unchanged; older
+ * versions wrapped theirs in punctuation.
+ */
+const useSvgId = () => useId().replace(/[^\w-]/g, "");
 
 export type Costume = "bow" | "headphones" | "hat";
 

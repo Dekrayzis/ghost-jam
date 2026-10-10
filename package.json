@@ -1,7 +1,7 @@
 {
   "name": "ghost-jam",
   "private": true,
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "A Halloween FizzBuzz concert in the browser: a light wall, dancing ghosts, a growing crowd and a track synthesised live with the Web Audio API.",
   "type": "module",
   "exports": {

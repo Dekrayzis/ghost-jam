@@ -2,7 +2,8 @@
 @use "sass:selector";
 
 // The handful of design tokens Ghost Jam uses, as plain values, so the
-// stylesheet stands on its own wherever it's used.
+// stylesheet stands on its own wherever it's used (it also resets its own
+// elements; see the top of _ghost-jam.scss).
 
 $space: (
   2: 0.5rem,
@@ -16,16 +17,11 @@ $space: (
 $radius: ("lg": 22px);
 $colors: ("line": rgba(255, 255, 255, 0.08));
 $type: ("caption": 0.6875rem, "body-sm": 0.8125rem);
-$breakpoint: ("sm": 640px);
 
 @function space($key) { @return map.get($space, $key); }
 @function radius($key) { @return map.get($radius, $key); }
 @function color($key) { @return map.get($colors, $key); }
 @function fs($key) { @return map.get($type, $key); }
-
-@mixin down($bp) {
-  @media (max-width: (map.get($breakpoint, $bp) - 0.02px)) { @content; }
-}
 
 // The system setting, or a host page's pause switch (see motion.ts).
 @mixin less-motion {

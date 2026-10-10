@@ -1,11 +1,15 @@
 import { STEP, mtof } from "./music";
 
 export type Synth = ReturnType<typeof makeSynth>;
+export type Band = ReturnType<Synth["band"]>;
+
+/** How long a stopped run takes to fade out, in seconds. */
+export const FADE = 0.08;
 
 /**
- * The instruments, all synthesised: no samples. One audio context, a master
- * bus through a compressor, and a voice per instrument, each played at an
- * exact audio-clock time `t`.
+ * The instruments, all synthesised: no samples. One audio context and a
+ * master bus through a compressor; each run of the music (from Play to
+ * Pause) gets a band of its own from band().
  */
 export function makeSynth() {
   const ctx = new AudioContext();
@@ -17,6 +21,20 @@ export function makeSynth() {
   const noise = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
   const data = noise.getChannelData(0);
   for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+
+  return { ctx, band: () => makeBand(ctx, master, noise) };
+}
+
+/**
+ * A voice per instrument, each played at an exact audio-clock time `t`, all
+ * through one bus. Notes are booked ahead, so stopping the scheduler alone
+ * would leave them (and the pad, the lead and the echo) still to sound;
+ * end() fades the bus and cuts it loose, so nothing from this run is heard
+ * after it, even once the context is suspended and resumed.
+ */
+function makeBand(ctx: AudioContext, out: AudioNode, noise: AudioBuffer) {
+  const master = ctx.createGain();
+  master.connect(out);
 
   // ---- Building blocks --------------------------------------------------------
 
@@ -136,5 +154,26 @@ export function makeSynth() {
     tone("sine", 5.5, t, end, depth);
   };
 
-  return { ctx, kick, clap, hat, bass, pad, stab, lead };
+  let ended = false;
+  const end = () => {
+    if (ended) return;
+    ended = true;
+    const now = ctx.currentTime;
+    for (const g of [master.gain, feedback.gain]) {
+      g.cancelScheduledValues(now);
+      g.setValueAtTime(g.value, now);
+      g.linearRampToValueAtTime(0, now + FADE);
+    }
+    // Disconnected after the fade; by then the bus is silent anyway.
+    window.setTimeout(() => {
+      try {
+        master.disconnect();
+        echo.disconnect();
+      } catch {
+        // Already gone with a closed context.
+      }
+    }, FADE * 1000 + 40);
+  };
+
+  return { kick, clap, hat, bass, pad, stab, lead, end };
 }

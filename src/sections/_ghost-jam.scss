@@ -25,6 +25,29 @@ $candle: map.get($lights, candle);
 $slime: map.get($lights, slime);
 $moon: map.get($lights, moon);
 $mono: ui-monospace, "Cascadia Code", Consolas, monospace;
+// One beat. The component sets --beat from the tempo in music.ts, so the
+// dance keeps in step if the tempo changes; 0.5s (120 BPM) until it does.
+$beat: var(--beat, 0.5s);
+
+// A minimal reset for the component's own elements, so it looks the same
+// whatever the host page does or doesn't reset. Kept at one class's
+// specificity: it beats a host's element selectors, and the component's own
+// rules below, written later, beat it.
+.ghost-jam,
+.ghost-jam *,
+.ghost-jam *::before,
+.ghost-jam *::after {
+  box-sizing: border-box;
+}
+
+.ghost-jam :where(ol, ul, li, p, strong, small) {
+  margin: 0;
+  padding: 0;
+}
+
+.ghost-jam :where(ol, ul) { list-style: none; }
+.ghost-jam :where(svg) { display: block; max-width: 100%; }
+.ghost-jam :where(button) { font: inherit; color: inherit; -webkit-user-select: none; user-select: none; }
 
 .ghost-jam {
   // The block's own selector, for nesting parts under a state (&.is-playing).
@@ -100,7 +123,7 @@ $mono: ui-monospace, "Cascadia Code", Consolas, monospace;
     inset: 50% auto auto 50%;
     translate: -50% -50%;
     width: 92%;
-    font-size: clamp(0.4rem, 0.7vw, 0.62rem);
+    font-size: clamp(0.4rem, 0.7cqi, 0.62rem);
     font-weight: 500;
     text-align: center;
     text-transform: uppercase;
@@ -134,7 +157,7 @@ $mono: ui-monospace, "Cascadia Code", Consolas, monospace;
     justify-content: center;
     gap: 0.25em;
     margin-top: space(2);
-    font-size: clamp(3rem, 8vw, 6.5rem);
+    font-size: clamp(3rem, 8cqi, 6.5rem);
     font-weight: 900;
     line-height: 0.8;
     letter-spacing: -0.07em;
@@ -179,7 +202,7 @@ $mono: ui-monospace, "Cascadia Code", Consolas, monospace;
     position: absolute;
     top: -18%;
     right: 7%;
-    width: clamp(3rem, 7vw, 5.5rem);
+    width: clamp(3rem, 7cqi, 5.5rem);
     aspect-ratio: 1;
 
     // The moon's glow, outside the crescent's mask so it isn't cut off.
@@ -266,7 +289,7 @@ $mono: ui-monospace, "Cascadia Code", Consolas, monospace;
     inset: 50% auto auto 50%;
     translate: -50% -50%;
     scale: 0.85;
-    font-size: clamp(5rem, 18vw, 13rem);
+    font-size: clamp(5rem, 18cqi, 13rem);
     font-weight: 900;
     line-height: 0.75;
     letter-spacing: -0.08em;
@@ -284,7 +307,7 @@ $mono: ui-monospace, "Cascadia Code", Consolas, monospace;
     display: flex;
     align-items: flex-end;
     justify-content: center;
-    gap: clamp(0.5rem, 3vw, 3rem);
+    gap: clamp(0.5rem, 3cqi, 3rem);
     height: 100%;
     max-height: 20rem;
     // Room under the band for the crowd's heads.
@@ -387,7 +410,7 @@ $mono: ui-monospace, "Cascadia Code", Consolas, monospace;
     position: absolute;
     left: var(--x);
     bottom: 0.25rem;
-    width: calc(clamp(5rem, 10vw, 8rem) * var(--s));
+    width: calc(clamp(5rem, 10cqi, 8rem) * var(--s));
     translate: -50% 0;
     rotate: var(--tilt);
     z-index: 2;
@@ -607,57 +630,57 @@ $mono: ui-monospace, "Cascadia Code", Consolas, monospace;
     &__key { display: none; }
   }
 
-  // ---- Playing: the dance. One beat is half a second at 120 BPM. -------------
+  // ---- Playing: the dance, timed in beats ($beat) -----------------------------
   // The animations start with the music, so the beats line up.
   &.is-playing {
     #{$b}__title { text-shadow: 0 0 34px rgba($ember, 0.25); }
 
     // The groove spans two beats: down on each beat, a hop and a lean
     // between. The outer ghosts mirror each other; the DJ nods every beat.
-    #{$b}__ghost { animation: gj-groove 1s cubic-bezier(0.45, 0, 0.55, 1) infinite; }
-    #{$b}__dancer--dj #{$b}__ghost { animation: gj-nod 0.5s ease-in-out infinite; }
-    #{$b}__shadow { animation: gj-hop-shadow 0.5s ease-in-out infinite; }
+    #{$b}__ghost { animation: gj-groove calc(#{$beat} * 2) cubic-bezier(0.45, 0, 0.55, 1) infinite; }
+    #{$b}__dancer--dj #{$b}__ghost { animation: gj-nod #{$beat} ease-in-out infinite; }
+    #{$b}__shadow { animation: gj-hop-shadow #{$beat} ease-in-out infinite; }
 
     // Raise the roof: the left arm up on one beat, the right on the next.
-    #{$b}__arm { animation: gj-raise 1s ease-in-out infinite; }
-    #{$b}__arm--r { animation-delay: -0.5s; }
+    #{$b}__arm { animation: gj-raise calc(#{$beat} * 2) ease-in-out infinite; }
+    #{$b}__arm--r { animation-delay: calc(#{$beat} * -1); }
     // The DJ scratches instead, both hands on the decks.
-    #{$b}__dancer--dj #{$b}__arm { animation: gj-scratch 0.25s ease-in-out infinite alternate; }
-    #{$b}__dancer--dj #{$b}__arm--r { animation-delay: -0.125s; }
+    #{$b}__dancer--dj #{$b}__arm { animation: gj-scratch calc(#{$beat} / 2) ease-in-out infinite alternate; }
+    #{$b}__dancer--dj #{$b}__arm--r { animation-delay: calc(#{$beat} / -4); }
 
-    #{$b}__mouth { animation: gj-sing 0.25s ease-in-out infinite alternate; }
-    #{$b}__costume { animation: gj-bounce 0.5s ease-in-out infinite; }
-    #{$b}__led { animation: gj-led 0.5s steps(1) infinite; }
-    #{$b}__record { animation: gj-spin 0.5s linear infinite; }
+    #{$b}__mouth { animation: gj-sing calc(#{$beat} / 2) ease-in-out infinite alternate; }
+    #{$b}__costume { animation: gj-bounce #{$beat} ease-in-out infinite; }
+    #{$b}__led { animation: gj-led #{$beat} steps(1) infinite; }
+    #{$b}__record { animation: gj-spin #{$beat} linear infinite; }
 
     // The booth's lights chase along the row, one lap every two beats.
-    #{$b}__chase rect { animation: gj-chase 1s steps(1) infinite; }
+    #{$b}__chase rect { animation: gj-chase calc(#{$beat} * 2) steps(1) infinite; }
     @for $i from 1 through 12 {
-      #{$b}__chase rect:nth-child(#{$i}) { animation-delay: #{($i - 1) * 0.0833}s; }
+      #{$b}__chase rect:nth-child(#{$i}) { animation-delay: calc(#{$beat} * #{$i - 1} / 6); }
     }
 
     #{$b}__beam { opacity: 1; animation: gj-sweep 4s ease-in-out infinite alternate; }
     #{$b}__beam--b { animation: gj-sway 3s ease-in-out infinite alternate; }
 
-    #{$b}__fan-art { animation: gj-fan-bounce 0.5s ease-in-out infinite; }
-    #{$b}__fan.is-offbeat #{$b}__fan-art { animation-delay: -0.25s; }
-    #{$b}__fan-arms { animation: gj-fan-arms 1s ease-in-out infinite; }
-    #{$b}__hand { animation: gj-glow-wave 1s ease-in-out infinite; }
+    #{$b}__fan-art { animation: gj-fan-bounce #{$beat} ease-in-out infinite; }
+    #{$b}__fan.is-offbeat #{$b}__fan-art { animation-delay: calc(#{$beat} / -2); }
+    #{$b}__fan-arms { animation: gj-fan-arms calc(#{$beat} * 2) ease-in-out infinite; }
+    #{$b}__hand { animation: gj-glow-wave calc(#{$beat} * 2) ease-in-out infinite; }
     // The stick swings with the arm a fraction of a beat late, so it keeps
     // going as the arm turns, then catches up; the halo swings a little later
     // and less again.
-    #{$b}__stick { animation: gj-follow 1s ease-in-out -0.92s infinite; }
-    #{$b}__trail { --amp: 0.5; animation: gj-follow 1s ease-in-out -0.86s infinite; }
+    #{$b}__stick { animation: gj-follow calc(#{$beat} * 2) ease-in-out calc(#{$beat} * -1.84) infinite; }
+    #{$b}__trail { --amp: 0.5; animation: gj-follow calc(#{$beat} * 2) ease-in-out calc(#{$beat} * -1.72) infinite; }
     // Off-beat fans wave half a swing out of step: the arm, stick and halo
-    // all move on by half a second.
+    // all move on by a beat.
     #{$b}__fan.is-offbeat {
-      #{$b}__hand { animation-delay: -0.5s; }
-      #{$b}__stick { animation-delay: -0.42s; }
-      #{$b}__trail { animation-delay: -0.36s; }
+      #{$b}__hand { animation-delay: calc(#{$beat} * -1); }
+      #{$b}__stick { animation-delay: calc(#{$beat} * -0.84); }
+      #{$b}__trail { animation-delay: calc(#{$beat} * -0.72); }
     }
 
     #{$b}__eq { opacity: 0.85; }
-    #{$b}__eq span { animation: gj-eq 0.5s ease-in-out infinite alternate; }
+    #{$b}__eq span { animation: gj-eq #{$beat} ease-in-out infinite alternate; }
   }
 
   // Less motion: everything holds still and the big word stays hidden; the

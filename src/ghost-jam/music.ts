@@ -1,4 +1,4 @@
-import type { Synth } from "./synth";
+import type { Band } from "./synth";
 
 /**
  * The track, as data: tempo, the beat pattern, and four bars of song. Change
@@ -8,6 +8,8 @@ import type { Synth } from "./synth";
 export const BPM = 120;
 /** A sixteenth note, in seconds: one step of the sequencer. */
 export const STEP = 60 / BPM / 4;
+/** A beat, in seconds; the stylesheet's dance moves are timed in these (--beat). */
+export const BEAT = 60 / BPM;
 export const STEPS_PER_BAR = 16;
 export const STEPS_PER_BEAT = 4;
 export const BARS = 4;
@@ -63,18 +65,18 @@ const SONG: readonly Bar[] = [
 ];
 
 /** Everything that sounds on one step, played at audio time `t`. */
-export function playStep(synth: Synth, step: number, t: number) {
+export function playStep(band: Band, step: number, t: number) {
   const at = step % STEPS_PER_BAR;
   const bar = SONG[Math.floor(step / STEPS_PER_BAR) % BARS];
 
-  if (PATTERN.kick.has(at)) synth.kick(t);
-  if (PATTERN.clap.has(at)) synth.clap(t);
-  if (PATTERN.hat.has(at)) synth.hat(t, PATTERN.hatAccent.has(at));
-  if (PATTERN.bass.has(at)) synth.bass(t, mtof(bar.root + (PATTERN.bassOctave.has(at) ? 12 : 0)));
-  if (at === 0) synth.pad(t, bar.chord, STEP * STEPS_PER_BAR);
+  if (PATTERN.kick.has(at)) band.kick(t);
+  if (PATTERN.clap.has(at)) band.clap(t);
+  if (PATTERN.hat.has(at)) band.hat(t, PATTERN.hatAccent.has(at));
+  if (PATTERN.bass.has(at)) band.bass(t, mtof(bar.root + (PATTERN.bassOctave.has(at) ? 12 : 0)));
+  if (at === 0) band.pad(t, bar.chord, STEP * STEPS_PER_BAR);
 
   if (step < FULL_FROM) return;
-  if (PATTERN.stab.has(at)) synth.stab(t, bar.chord);
+  if (PATTERN.stab.has(at)) band.stab(t, bar.chord);
   const note = bar.melody.find(([start]) => start === at);
-  if (note) synth.lead(t, note[1], note[2] * STEP);
+  if (note) band.lead(t, note[1], note[2] * STEP);
 }

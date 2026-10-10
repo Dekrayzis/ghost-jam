@@ -1,0 +1,747 @@
+@use "tokens" as *;
+
+// Ghost Jam (GhostJam.tsx). A "pumpkin night"
+// palette, fixed rather than tied to the accent, because the wall needs five
+// distinct lights: pumpkin, ember, candle, slime and moon.
+// Adapted from "Ghost Jam" by grauconejo13 on CodePen.
+
+$pumpkin: #ff7a18;
+$ember: #ff3d2e;
+$candle: #ffd166;
+$slime: #9dff57;
+$moon: #9fb4ff;
+$mono: ui-monospace, "Cascadia Code", Consolas, monospace;
+
+.ghost-jam {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  height: clamp(38rem, 86vh, 52rem);
+  overflow: hidden;
+  isolation: isolate;
+  border-radius: radius("lg");
+  border: 1px solid color("line");
+  background:
+    radial-gradient(circle at 16% 20%, rgba($pumpkin, 0.16), transparent 30%),
+    radial-gradient(circle at 84% 25%, rgba($moon, 0.1), transparent 29%),
+    radial-gradient(ellipse 60% 30% at 50% 100%, rgba($ember, 0.18), transparent 70%),
+    linear-gradient(155deg, #07050a, #140b10 55%, #070408);
+  color: #fbf7f2;
+
+  // ---- The FizzBuzz wall ----------------------------------------------------
+  &__wall {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    grid-template-rows: repeat(10, 1fr);
+    gap: 4px;
+    padding: 8px;
+    list-style: none;
+    // Fades towards the floor, so the band stands out against it.
+    mask: linear-gradient(#000 40%, rgba(0, 0, 0, 0.35));
+  }
+
+  &__cell {
+    position: relative;
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.045);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.014);
+    opacity: 0.3;
+    transition: opacity 0.14s ease, background-color 0.14s ease, border-color 0.14s ease;
+    font-family: $mono;
+
+    @each $name, $c in (pumpkin: $pumpkin, ember: $ember, candle: $candle, slime: $slime, moon: $moon) {
+      &[data-light="#{$name}"] {
+        opacity: 1;
+        z-index: 1;
+        background: rgba($c, 0.22);
+        border-color: rgba($c, 0.55);
+        box-shadow: 0 0 18px rgba($c, 0.45);
+      }
+    }
+  }
+
+  &__n {
+    position: absolute;
+    top: 3px;
+    left: 4px;
+    font-size: 0.5rem;
+    color: rgba(255, 255, 255, 0.2);
+  }
+
+  &__v {
+    position: absolute;
+    inset: 50% auto auto 50%;
+    translate: -50% -50%;
+    width: 92%;
+    font-size: clamp(0.4rem, 0.7vw, 0.62rem);
+    font-weight: 500;
+    text-align: center;
+    text-transform: uppercase;
+    overflow-wrap: anywhere;
+    color: rgba(255, 255, 255, 0.3);
+  }
+
+  &__cell.is-boo &__v { color: rgba($slime, 0.6); }
+  &__cell.is-scary &__v { color: rgba($moon, 0.7); }
+  &__cell.is-booscary &__v { color: rgba($candle, 0.8); }
+
+  // ---- Title ----------------------------------------------------------------
+  &__head {
+    position: relative;
+    z-index: 2;
+    padding: space(6) space(5) space(2);
+    text-align: center;
+    pointer-events: none;
+  }
+
+  &__eyebrow {
+    font-family: $mono;
+    font-size: fs("caption");
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  &__title {
+    display: flex;
+    justify-content: center;
+    gap: 0.25em;
+    margin-top: space(2);
+    font-size: clamp(3rem, 8vw, 6.5rem);
+    font-weight: 900;
+    line-height: 0.8;
+    letter-spacing: -0.07em;
+    text-transform: uppercase;
+    transition: scale 0.12s ease, text-shadow 0.15s ease;
+  }
+
+  // An outline from a stroke would also trace where the font's letter parts
+  // overlap (the bar inside the A). Painting the stroke first and a dark fill
+  // over it covers the inner half, so only the outer edge shows.
+  &__outline {
+    color: #120a10;
+    -webkit-text-stroke: 4px $pumpkin;
+    paint-order: stroke fill;
+    text-shadow: 0 0 35px rgba($pumpkin, 0.35);
+  }
+
+  &__tagline {
+    margin-top: space(3);
+    font-size: fs("body-sm");
+    letter-spacing: 0.05em;
+    color: rgba(255, 255, 255, 0.65);
+
+    strong { color: $candle; }
+  }
+
+  &.is-playing &__title { text-shadow: 0 0 34px rgba($ember, 0.25); }
+  &.is-beat &__title { scale: 1.015; }
+
+  // ---- The stage ----------------------------------------------------------------
+  &__stage {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    min-height: 0;
+    pointer-events: none;
+  }
+
+  // The sky holds the moon and the bat's flight, sized to the moon.
+  &__sky {
+    position: absolute;
+    top: -18%;
+    right: 7%;
+    width: clamp(3rem, 7vw, 5.5rem);
+    aspect-ratio: 1;
+
+    // The moon's glow, outside the crescent's mask so it isn't cut off.
+    &::before {
+      content: "";
+      position: absolute;
+      inset: -90%;
+      border-radius: 50%;
+      background: radial-gradient(closest-side, rgba($candle, 0.18), transparent);
+    }
+  }
+
+  &__moon {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    // Craters and maria over a lit face, darker towards the rim.
+    background:
+      radial-gradient(circle at 28% 58%, rgba(#a8925a, 0.45) 0 9%, transparent 10%),
+      radial-gradient(circle at 20% 38%, rgba(#a8925a, 0.35) 0 6%, transparent 7%),
+      radial-gradient(circle at 42% 80%, rgba(#a8925a, 0.4) 0 7%, transparent 8%),
+      radial-gradient(circle at 15% 70%, rgba(#a8925a, 0.3) 0 4%, transparent 5%),
+      radial-gradient(circle at 36% 48%, rgba(#a8925a, 0.25) 0 3.5%, transparent 4.5%),
+      radial-gradient(ellipse 30% 22% at 30% 66%, rgba(#b9a26a, 0.35), transparent),
+      radial-gradient(circle at 38% 35%, #fffbe9, #f3e3b0 55%, #c9b06c);
+    box-shadow: inset -4px -6px 14px rgba(#5a4a22, 0.35);
+    opacity: 0.92;
+    // A crescent: the moon with a bite taken out.
+    mask: radial-gradient(circle at 75% 28%, transparent 38%, #000 39%);
+  }
+
+  // The bat flies a loop round the moon: the flight box is the sky's size,
+  // so its translate percentages are moon-widths.
+  &__flight {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    animation: gj-bat-flight 11s ease-in-out infinite;
+  }
+
+  &__bat {
+    width: 62%;
+    min-width: 2.25rem;
+    overflow: visible;
+    fill: #24182e;
+    animation: gj-bat-bob 0.5s ease-in-out infinite alternate;
+  }
+
+  &__wing {
+    transform-box: fill-box;
+    animation: gj-flap-l 0.22s ease-in-out infinite alternate;
+
+    &--l { transform-origin: 100% 40%; }
+    &--r { transform-origin: 0% 40%; animation-name: gj-flap-r; }
+  }
+
+  // Stage lights from above, sweeping while the music plays.
+  &__beam {
+    position: absolute;
+    top: -40%;
+    left: 50%;
+    width: 34%;
+    height: 150%;
+    margin-left: -17%;
+    transform-origin: 50% 0;
+    clip-path: polygon(47% 0, 53% 0, 100% 100%, 0 100%);
+    opacity: 0;
+    transition: opacity 0.6s ease;
+
+    &--a { background: linear-gradient(rgba($pumpkin, 0.4), transparent 80%); rotate: -24deg; }
+    &--b { background: linear-gradient(rgba($moon, 0.32), transparent 80%); }
+    &--c { background: linear-gradient(rgba($slime, 0.28), transparent 80%); rotate: 24deg; }
+  }
+
+  &__word {
+    position: absolute;
+    inset: 50% auto auto 50%;
+    translate: -50% -50%;
+    scale: 0.85;
+    font-size: clamp(5rem, 18vw, 13rem);
+    font-weight: 900;
+    line-height: 0.75;
+    letter-spacing: -0.08em;
+    color: #120a10;
+    -webkit-text-stroke: 3px rgba($candle, 0.65);
+    paint-order: stroke fill;
+    opacity: 0;
+    transition: opacity 0.18s ease, scale 0.18s ease;
+
+    &.is-shown { opacity: 0.16; scale: 1; }
+  }
+
+  &__band {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: clamp(0.5rem, 3vw, 3rem);
+    height: 100%;
+    max-height: 20rem;
+    // Room under the band for the crowd's heads.
+    padding-bottom: clamp(2.5rem, 7vh, 4rem);
+  }
+
+  // A dancer is the ghost plus what stands with it: a floor shadow, or the
+  // DJ's booth. Each ghost glows in its own colour.
+  &__dancer {
+    --rim: #{rgba($moon, 0.4)};
+    position: relative;
+    display: grid;
+    justify-items: center;
+    height: 74%;
+
+    // The ghost's glow, painted once behind it rather than as a filter on
+    // the moving SVG (which would redraw the blur every frame).
+    &::before {
+      content: "";
+      position: absolute;
+      inset: 4% -12% 0;
+      border-radius: 50%;
+      background: radial-gradient(closest-side, var(--rim), transparent);
+    }
+
+    &--left { --rim: #{rgba($slime, 0.38)}; }
+    &--dj { --rim: #{rgba($pumpkin, 0.5)}; height: 100%; z-index: 1; }
+  }
+
+  &__ghost {
+    position: relative;
+    height: 100%;
+    width: auto;
+    overflow: visible;
+    transform-origin: 50% 100%;
+    animation: gj-float 3s ease-in-out infinite;
+  }
+
+  &__shadow {
+    position: absolute;
+    bottom: -8px;
+    width: 66%;
+    height: 14px;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, rgba(0, 0, 0, 0.65), transparent);
+    animation: gj-float-shadow 3s ease-in-out infinite;
+  }
+
+  &__dancer--left &__ghost,
+  &__dancer--left &__shadow { animation-delay: -1s; }
+  &__dancer--right &__ghost,
+  &__dancer--right &__shadow { animation-delay: -2s; }
+
+  // The parts that move on their own, each pivoting in its own box.
+  &__arm,
+  &__eyes,
+  &__mouth,
+  &__costume,
+  &__record,
+  &__chase rect {
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  // Arms pivot at the shoulder. A positive turn raises the left arm; the
+  // right arm is its mirror image, so it takes the opposite sign.
+  &__arm--l { transform-origin: 88% 50%; animation: gj-wave-l 2.4s ease-in-out infinite; }
+  &__arm--r { transform-origin: 12% 50%; animation: gj-wave-r 2.4s ease-in-out -1.2s infinite; }
+
+  &__eyes { animation: gj-blink 4.5s infinite; }
+  &__dancer--left &__eyes { animation-delay: -1.7s; }
+  &__dancer--right &__eyes { animation-delay: -3.1s; }
+
+  &__booth {
+    position: absolute;
+    bottom: -6px;
+    width: 150%;
+    height: auto;
+    filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.6));
+  }
+
+  &__chase rect { opacity: 0.25; }
+
+  // ---- Playing: the dance. One beat is half a second at 120 BPM. -------------
+  // The groove spans two beats: down on each beat, a hop and a lean between.
+  // The outer ghosts mirror each other; the DJ nods on every beat. The
+  // animations start with the music, so the beats line up.
+  &.is-playing &__ghost { animation: gj-groove 1s cubic-bezier(0.45, 0, 0.55, 1) infinite; }
+  &.is-playing &__dancer--right &__ghost { animation-name: gj-groove-mirror; }
+  &.is-playing &__dancer--dj &__ghost { animation: gj-nod 0.5s ease-in-out infinite; }
+  &.is-playing &__shadow { animation: gj-hop-shadow 0.5s ease-in-out infinite; }
+
+  // Raise the roof: the left arm up on one beat, the right on the next.
+  &.is-playing &__arm--l { animation: gj-raise-l 1s ease-in-out infinite; }
+  &.is-playing &__arm--r { animation: gj-raise-r 1s ease-in-out -0.5s infinite; }
+  // The DJ scratches instead, both hands on the decks.
+  &.is-playing &__dancer--dj &__arm--l { animation: gj-scratch-l 0.25s ease-in-out infinite alternate; }
+  &.is-playing &__dancer--dj &__arm--r { animation: gj-scratch-r 0.25s ease-in-out -0.125s infinite alternate; }
+
+  &.is-playing &__mouth { animation: gj-sing 0.25s ease-in-out infinite alternate; }
+  &.is-playing &__costume { animation: gj-bounce 0.5s ease-in-out infinite; }
+  &.is-playing &__led { animation: gj-led 0.5s steps(1) infinite; }
+  &.is-playing &__record { animation: gj-spin 0.5s linear infinite; }
+
+  // The booth's lights chase along the row, one lap a beat pair.
+  &.is-playing &__chase rect { animation: gj-chase 1s steps(1) infinite; }
+  @for $i from 1 through 12 {
+    &.is-playing &__chase rect:nth-child(#{$i}) { animation-delay: #{($i - 1) * 0.0833}s; }
+  }
+
+  &.is-playing &__beam { opacity: 1; }
+  &.is-playing &__beam--a { animation: gj-sweep-a 4s ease-in-out infinite alternate; }
+  &.is-playing &__beam--b { animation: gj-sweep-b 3s ease-in-out infinite alternate; }
+  &.is-playing &__beam--c { animation: gj-sweep-c 4s ease-in-out infinite alternate; }
+
+  // ---- The crowd ------------------------------------------------------------------
+  // Fans seen from behind along the bottom edge of the frame, in front of
+  // the stage, as if you were in the audience. The player sits over them.
+  &__crowd {
+    position: absolute;
+    inset: auto 0 0;
+    z-index: 2;
+    height: 0;
+    list-style: none;
+  }
+
+  &__fan {
+    position: absolute;
+    left: var(--x);
+    bottom: 0.25rem;
+    width: calc(clamp(5rem, 10vw, 8rem) * var(--s));
+    translate: -50% 0;
+    rotate: var(--tilt);
+    z-index: 2;
+    animation: gj-arrive 0.8s cubic-bezier(0.2, 0.9, 0.3, 1.25) both;
+
+    // Further back stands higher, smaller and dimmer.
+    &.is-row-1 { bottom: 2.1rem; z-index: 1; opacity: 0.85; }
+    &.is-row-2 { bottom: 3.8rem; z-index: 0; opacity: 0.65; }
+  }
+
+  &__fan-art {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+    transform-origin: 50% 100%;
+    fill: #2d2340;
+    // The moonlit rim is a stroke in the SVG: no filters on anything that
+    // moves, so a full crowd stays cheap to draw.
+  }
+
+  // A raised arm and its glow stick, waving together from the shoulder (the
+  // bottom-left corner of the group's box).
+  &__hand {
+    transform-box: fill-box;
+    transform-origin: 0% 100%;
+  }
+
+  &__fan-arms { transform-box: fill-box; transform-origin: 50% 100%; }
+
+  &.is-playing &__fan-art { animation: gj-fan-bounce 0.5s ease-in-out infinite; }
+  &.is-playing &__fan.is-offbeat &__fan-art { animation-delay: -0.25s; }
+  &.is-playing &__fan-arms { animation: gj-fan-arms 1s ease-in-out infinite; }
+  &.is-playing &__hand { animation: gj-glow-wave 1s ease-in-out infinite; }
+  &.is-playing &__fan.is-offbeat &__hand { animation-direction: reverse; }
+
+  // ---- Player -------------------------------------------------------------------
+  &__player {
+    position: relative;
+    z-index: 3;
+    width: min(42rem, calc(100% - #{space(8)}));
+    margin: 0 auto;
+    padding: space(2) 0 space(5);
+  }
+
+  &__eq {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 4px;
+    height: 24px;
+    margin-bottom: space(2);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+
+    span {
+      width: 4px;
+      height: 4px;
+      border-radius: 999px;
+      background: linear-gradient(to top, $ember, $candle);
+    }
+  }
+
+  &.is-playing &__eq { opacity: 0.85; }
+  &.is-playing &__eq span { animation: gj-eq 0.5s ease-in-out infinite alternate; }
+
+  &__controls {
+    display: grid;
+    grid-template-columns: auto minmax(10rem, 1fr);
+    align-items: center;
+    gap: space(4);
+    padding: space(2);
+    border: 1px solid rgba(255, 255, 255, 0.11);
+    border-radius: 20px;
+    background: rgba(12, 7, 11, 0.92);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.36);
+
+    @include down("sm") { grid-template-columns: 1fr; }
+  }
+
+  &__play {
+    display: flex;
+    align-items: center;
+    gap: space(3);
+    min-width: 10rem;
+    padding: space(2) space(4);
+    border: 0;
+    border-radius: 14px;
+    background: linear-gradient(135deg, $pumpkin, $ember);
+    color: #1a0905;
+    text-align: left;
+    cursor: pointer;
+    box-shadow: 0 8px 25px rgba($pumpkin, 0.3);
+    transition: translate 0.15s ease, filter 0.15s ease;
+
+    &:hover { translate: 0 -2px; filter: brightness(1.08); }
+    &:active { scale: 0.97; }
+    &:focus-visible { outline: 2px solid $candle; outline-offset: 3px; }
+
+    small,
+    strong { display: block; font-family: $mono; text-transform: uppercase; }
+    small { font-size: 0.55rem; letter-spacing: 0.15em; opacity: 0.7; }
+    strong { font-size: 0.8rem; letter-spacing: 0.08em; }
+  }
+
+  &__play-icon {
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    aspect-ratio: 1;
+    flex: none;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.18);
+    font-size: 0.75rem;
+  }
+
+  &__track-top {
+    display: flex;
+    justify-content: space-between;
+    gap: space(3);
+    margin-bottom: space(2);
+    font-family: $mono;
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  &__progress {
+    display: block;
+    height: 5px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.1);
+
+    span {
+      display: block;
+      width: 0;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, $candle, $pumpkin, $ember);
+      box-shadow: 0 0 14px rgba($pumpkin, 0.5);
+    }
+  }
+
+  &__key {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: space(5);
+    margin-top: space(2);
+    font-family: $mono;
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.3);
+  }
+
+  // Less motion: the ghosts, lights and wall hold still; the music still plays.
+  @include less-motion {
+    &__flight,
+    &__bat,
+    &__wing,
+    &__ghost,
+    &__shadow,
+    &__arm,
+    &__eyes,
+    &.is-playing &__ghost,
+    &.is-playing &__dancer--dj &__ghost,
+    &.is-playing &__shadow,
+    &.is-playing &__arm--l,
+    &.is-playing &__arm--r,
+    &.is-playing &__dancer--dj &__arm--l,
+    &.is-playing &__dancer--dj &__arm--r,
+    &.is-playing &__mouth,
+    &.is-playing &__costume,
+    &.is-playing &__led,
+    &.is-playing &__record,
+    &.is-playing &__chase rect,
+    &.is-playing &__beam--a,
+    &.is-playing &__beam--b,
+    &.is-playing &__beam--c,
+    &.is-playing &__eq span,
+    &__fan,
+    &.is-playing &__fan-art,
+    &.is-playing &__fan-arms,
+    &.is-playing &__hand { animation: none; }
+    &__word { display: none; }
+  }
+}
+
+// Waiting: a slow float, a wave now and then, and a blink.
+@keyframes gj-float {
+  0%, 100% { translate: 0 0; rotate: -2deg; }
+  50% { translate: 0 -12px; rotate: 2deg; }
+}
+
+@keyframes gj-float-shadow {
+  0%, 100% { scale: 1; opacity: 1; }
+  50% { scale: 0.8; opacity: 0.6; }
+}
+
+@keyframes gj-wave-l {
+  0%, 60%, 100% { rotate: 0deg; }
+  72% { rotate: 45deg; }
+  80% { rotate: 20deg; }
+  88% { rotate: 45deg; }
+}
+
+@keyframes gj-wave-r {
+  0%, 60%, 100% { rotate: 0deg; }
+  72% { rotate: -45deg; }
+  80% { rotate: -20deg; }
+  88% { rotate: -45deg; }
+}
+
+@keyframes gj-blink {
+  0%, 93%, 100% { scale: 1 1; }
+  96% { scale: 1 0.1; }
+}
+
+// Playing. 0% and 50% land on the beat: squashed to the floor, leaning out.
+@keyframes gj-groove {
+  0%, 100% { translate: 0 0; rotate: -10deg; scale: 1.08 0.9; }
+  25% { translate: -8px -26px; rotate: -2deg; scale: 0.95 1.06; }
+  50% { translate: 0 0; rotate: 10deg; scale: 1.08 0.9; }
+  75% { translate: 8px -26px; rotate: 2deg; scale: 0.95 1.06; }
+}
+
+@keyframes gj-groove-mirror {
+  0%, 100% { translate: 0 0; rotate: 10deg; scale: 1.08 0.9; }
+  25% { translate: 8px -26px; rotate: 2deg; scale: 0.95 1.06; }
+  50% { translate: 0 0; rotate: -10deg; scale: 1.08 0.9; }
+  75% { translate: -8px -26px; rotate: -2deg; scale: 0.95 1.06; }
+}
+
+@keyframes gj-nod {
+  0%, 100% { translate: 0 6px; scale: 1.04 0.95; }
+  50% { translate: 0 -6px; scale: 0.98 1.03; }
+}
+
+@keyframes gj-hop-shadow {
+  0%, 100% { scale: 1.1; opacity: 1; }
+  50% { scale: 0.65; opacity: 0.45; }
+}
+
+@keyframes gj-raise-l {
+  0%, 100% { rotate: 55deg; }
+  50% { rotate: -20deg; }
+}
+
+@keyframes gj-raise-r {
+  0%, 100% { rotate: -55deg; }
+  50% { rotate: 20deg; }
+}
+
+@keyframes gj-scratch-l {
+  from { rotate: -25deg; translate: 2px 0; }
+  to { rotate: -40deg; translate: 6px 2px; }
+}
+
+@keyframes gj-scratch-r {
+  from { rotate: 25deg; translate: -2px 0; }
+  to { rotate: 40deg; translate: -6px 2px; }
+}
+
+@keyframes gj-sing {
+  from { scale: 1 0.6; }
+  to { scale: 1 1.15; }
+}
+
+@keyframes gj-bounce {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -4px; }
+}
+
+@keyframes gj-led {
+  0% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+// A record seen at an angle: its label flips as it turns.
+@keyframes gj-spin {
+  0%, 100% { scale: 1 1; }
+  50% { scale: -1 1; }
+}
+
+@keyframes gj-chase {
+  0% { opacity: 1; }
+  20% { opacity: 0.25; }
+}
+
+@keyframes gj-sweep-a {
+  from { rotate: -36deg; }
+  to { rotate: -8deg; }
+}
+
+@keyframes gj-sweep-b {
+  from { rotate: -14deg; }
+  to { rotate: 14deg; }
+}
+
+@keyframes gj-sweep-c {
+  from { rotate: 36deg; }
+  to { rotate: 8deg; }
+}
+
+@keyframes gj-eq {
+  from { height: 4px; }
+  to { height: 23px; }
+}
+
+// The crowd.
+@keyframes gj-arrive {
+  from { translate: -50% 110%; opacity: 0; }
+  to { translate: -50% 0; opacity: 1; }
+}
+
+@keyframes gj-fan-bounce {
+  0%, 100% { translate: 0 0; scale: 1.03 0.96; }
+  50% { translate: 0 -9px; scale: 0.98 1.03; }
+}
+
+@keyframes gj-fan-arms {
+  0%, 100% { rotate: -8deg; }
+  50% { rotate: 8deg; }
+}
+
+@keyframes gj-glow-wave {
+  0%, 100% { rotate: -18deg; }
+  50% { rotate: 14deg; }
+}
+
+// The bat: a loop past the moon (crossing its face), wings beating.
+@keyframes gj-bat-flight {
+  0% { translate: -170% 60%; scale: 0.7; }
+  20% { translate: -60% -40%; scale: 0.85; }
+  40% { translate: 10% 15%; scale: 1; }
+  55% { translate: 90% -20%; scale: 0.9; }
+  75% { translate: 30% 110%; scale: 0.8; }
+  100% { translate: -170% 60%; scale: 0.7; }
+}
+
+@keyframes gj-bat-bob {
+  from { translate: 0 -2px; }
+  to { translate: 0 2px; }
+}
+
+@keyframes gj-flap-l {
+  from { rotate: 28deg; scale: 1 0.8; }
+  to { rotate: -22deg; scale: 1 1; }
+}
+
+@keyframes gj-flap-r {
+  from { rotate: -28deg; scale: 1 0.8; }
+  to { rotate: 22deg; scale: 1 1; }
+}

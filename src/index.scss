@@ -1,0 +1,64 @@
+// The page reset, matching the portfolio site Ghost Jam was built in, so it
+// renders the same here.
+*, *::before, *::after { box-sizing: border-box; }
+* { margin: 0; }
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  min-height: 100dvh;
+  overflow-x: clip;
+  background: #08090b;
+  color: #fbf7f2;
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 1rem;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+img, svg { display: block; max-width: 100%; }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+ul, ol { list-style: none; padding: 0; }
+:focus-visible { outline: 2px solid #ff7a18; outline-offset: 3px; }
+
+// Pictures can't be selected or dragged, and a double click on a control is
+// a click, not a word selection.
+svg { -webkit-user-select: none; user-select: none; }
+button { -webkit-user-select: none; user-select: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.page {
+  width: min(100% - 2rem, 80rem);
+  margin-inline: auto;
+  padding-block: 1rem;
+}
+
+.credit {
+  margin-top: 1rem;
+  font-size: 0.8125rem;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.5);
+
+  a {
+    color: #ff7a18;
+    text-underline-offset: 3px;
+
+    &:hover { color: #ffd166; }
+    &:focus-visible { outline: 2px solid #ffd166; outline-offset: 2px; border-radius: 2px; }
+  }
+}

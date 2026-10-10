@@ -1,23 +1,33 @@
 {
   "name": "ghost-jam",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A Halloween FizzBuzz concert in the browser: a light wall, dancing ghosts, a growing crowd and a track synthesised live with the Web Audio API.",
   "type": "module",
+  "exports": {
+    ".": "./src/ghost-jam/GhostJam.tsx",
+    "./styles.scss": "./src/sections/_ghost-jam.scss"
+  },
+  "files": [
+    "src/ghost-jam",
+    "src/sections",
+    "src/abstracts"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "typecheck": "tsc -b"
   },
-  "dependencies": {
-    "react": "19.3.0",
-    "react-dom": "19.3.0"
+  "peerDependencies": {
+    "react": ">=19"
   },
   "devDependencies": {
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "@vitejs/plugin-react": "6.1.2",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
     "sass": "1.105.1",
     "typescript": "7.0.2",
     "vite": "8.3.4"

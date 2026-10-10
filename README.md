@@ -40,7 +40,24 @@ Nothing that moves carries a CSS filter. Glows are painted once behind the ghost
 | `src/ghost-jam/palette.ts` | The light colours by name (the values live in the stylesheet) |
 | `src/sections/_ghost-jam.scss` | Every style and animation |
 
-The `ghost-jam` folder and the stylesheet are the same files as on the portfolio site, apart from `motion.ts`, which here reads the system's reduced-motion setting.
+## Use it in another React app
+
+The repo doubles as a package, which is how the portfolio site runs it. Install it from GitHub at a version tag:
+
+```bash
+npm install github:Dekrayzis/ghost-jam#v1.1.0
+```
+
+Then import the component and its stylesheet (the app needs Sass):
+
+```tsx
+import { GhostJam } from "ghost-jam";
+import "ghost-jam/styles.scss";
+
+<GhostJam />;
+```
+
+It ships as TypeScript source, so a Next.js app lists it in `transpilePackages` in `next.config.ts`. React 19 is a peer dependency. To pause it along with the rest of the page, set `data-motion="paused"` on `<html>`; it also follows the system's reduced-motion setting.
 
 ## Run it
 

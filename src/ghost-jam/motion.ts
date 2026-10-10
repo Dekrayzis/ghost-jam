@@ -1,6 +1,12 @@
-// The one file that differs from the portfolio's copy of this folder: there,
-// "less motion" is the site's switch (the system setting or its pause
-// button). Here it is the visitor's system setting.
+/**
+ * True when anything should hold still: the visitor's system setting, or a
+ * page-wide pause switch, data-motion="paused" on <html>, which a host site
+ * can set from its own control. On its own page the switch is simply never
+ * set. The stylesheet's `less-motion` mixin honours the same two signals.
+ */
 export function lessMotion(): boolean {
-  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  return (
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches ||
+    document.documentElement.getAttribute("data-motion") === "paused"
+  );
 }

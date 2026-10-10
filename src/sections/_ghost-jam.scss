@@ -2,8 +2,8 @@
 @use "sass:map";
 @use "../abstracts" as *;
 
-// Ghost Jam (components/ghost-jam). A "pumpkin night" palette, fixed rather
-// than tied to the site's accent, because the wall needs five distinct
+// Ghost Jam (src/ghost-jam). A "pumpkin night" palette, fixed rather
+// than tied to a host site's accent, because the wall needs five distinct
 // lights. The map is the only place the colours live: each is also set as a
 // custom property (--gj-pumpkin and so on) for the drawings to use.
 //

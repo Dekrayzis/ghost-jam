@@ -1,8 +1,8 @@
 @use "sass:map";
+@use "sass:selector";
 
-// The handful of design tokens Ghost Jam uses, as plain values. Laid out like
-// the portfolio's scss/abstracts, so sections/_ghost-jam.scss is the same
-// file in both places.
+// The handful of design tokens Ghost Jam uses, as plain values, so the
+// stylesheet stands on its own wherever it's used.
 
 $space: (
   2: 0.5rem,
@@ -27,6 +27,8 @@ $breakpoint: ("sm": 640px);
   @media (max-width: (map.get($breakpoint, $bp) - 0.02px)) { @content; }
 }
 
+// The system setting, or a host page's pause switch (see motion.ts).
 @mixin less-motion {
   @media (prefers-reduced-motion: reduce) { @content; }
+  @at-root #{selector.nest(':root[data-motion="paused"]', &)} { @content; }
 }

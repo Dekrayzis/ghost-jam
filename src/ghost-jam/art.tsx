@@ -126,10 +126,13 @@ export function Fan({ arms, glow, left }: { arms: boolean; glow: Light | null; l
         <g transform={left ? "translate(60 0) scale(-1 1)" : undefined}>
           <g className="ghost-jam__hand" style={{ color: paint(glow) }}>
             <g transform="rotate(20 56 28)">
-              {/* The stick: a soft halo, the tube, and a bright core */}
-              <rect x="49" y="-44" width="20" height="42" rx="10" fill="currentColor" opacity="0.22" />
-              <rect x="55" y="-38" width="8" height="32" rx="4" fill="currentColor" />
-              <rect x="57" y="-35" width="2.5" height="24" rx="1.25" fill="#fff" opacity="0.65" />
+              {/* The stick pivots at the hand, so it trails the arm's swing;
+                  its halo trails a little further, smearing the light. */}
+              <g className="ghost-jam__stick">
+                <rect className="ghost-jam__trail" x="49" y="-44" width="20" height="42" rx="10" fill="currentColor" opacity="0.22" />
+                <rect x="55" y="-38" width="8" height="32" rx="4" fill="currentColor" />
+                <rect x="57" y="-35" width="2.5" height="24" rx="1.25" fill="#fff" opacity="0.65" />
+              </g>
               {/* The arm, reaching up to the stick */}
               <ellipse cx="59" cy="11" rx="6" ry="17" />
             </g>

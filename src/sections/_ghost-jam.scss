@@ -422,6 +422,14 @@ $mono: ui-monospace, "Cascadia Code", Consolas, monospace;
 
   &__fan-arms { transform-box: fill-box; transform-origin: 50% 100%; }
 
+  // Secondary motion: the stick hangs from the hand (the bottom of its box),
+  // and the halo from the same point.
+  &__stick,
+  &__trail {
+    transform-box: fill-box;
+    transform-origin: 50% 100%;
+  }
+
   // ---- Player -------------------------------------------------------------------
   &__player {
     position: relative;
@@ -579,7 +587,18 @@ $mono: ui-monospace, "Cascadia Code", Consolas, monospace;
     #{$b}__fan.is-offbeat #{$b}__fan-art { animation-delay: -0.25s; }
     #{$b}__fan-arms { animation: gj-fan-arms 1s ease-in-out infinite; }
     #{$b}__hand { animation: gj-glow-wave 1s ease-in-out infinite; }
-    #{$b}__fan.is-offbeat #{$b}__hand { animation-direction: reverse; }
+    // The stick swings with the arm a fraction of a beat late, so it keeps
+    // going as the arm turns, then catches up; the halo swings a little later
+    // and less again.
+    #{$b}__stick { animation: gj-follow 1s ease-in-out -0.92s infinite; }
+    #{$b}__trail { --amp: 0.5; animation: gj-follow 1s ease-in-out -0.86s infinite; }
+    // Off-beat fans wave half a swing out of step: the arm, stick and halo
+    // all move on by half a second.
+    #{$b}__fan.is-offbeat {
+      #{$b}__hand { animation-delay: -0.5s; }
+      #{$b}__stick { animation-delay: -0.42s; }
+      #{$b}__trail { animation-delay: -0.36s; }
+    }
 
     #{$b}__eq { opacity: 0.85; }
     #{$b}__eq span { animation: gj-eq 0.5s ease-in-out infinite alternate; }
@@ -700,6 +719,13 @@ $mono: ui-monospace, "Cascadia Code", Consolas, monospace;
 @keyframes gj-fan-arms {
   0%, 100% { rotate: -8deg; }
   50% { rotate: 8deg; }
+}
+
+// Follow-through, relative to the arm and in step with its swing (the arm
+// turns at 0% and 50%), so run late it overshoots each turn. --amp scales it.
+@keyframes gj-follow {
+  0%, 100% { rotate: calc(-10deg * var(--amp, 1)); }
+  50% { rotate: calc(10deg * var(--amp, 1)); }
 }
 
 @keyframes gj-glow-wave {

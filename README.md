@@ -45,7 +45,7 @@ Nothing that moves carries a CSS filter. Glows are painted once behind the ghost
 The repo doubles as a package, which is how the portfolio site runs it. Install it from GitHub at a version tag:
 
 ```bash
-npm install github:Dekrayzis/ghost-jam#v1.1.0
+npm install github:Dekrayzis/ghost-jam#v1.1.1
 ```
 
 Then import the component and its stylesheet (the app needs Sass):

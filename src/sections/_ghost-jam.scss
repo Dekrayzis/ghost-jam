@@ -38,6 +38,7 @@ $mono: ui-monospace, "Cascadia Code", Consolas, monospace;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
   height: clamp(38rem, 86vh, 52rem);
+  container: ghost-jam / inline-size;
   overflow: hidden;
   isolation: isolate;
   border-radius: radius("lg");
@@ -467,8 +468,6 @@ $mono: ui-monospace, "Cascadia Code", Consolas, monospace;
     border-radius: 20px;
     background: rgba(12, 7, 11, 0.92);
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.36);
-
-    @include down("sm") { grid-template-columns: 1fr; }
   }
 
   &__play {
@@ -549,6 +548,63 @@ $mono: ui-monospace, "Cascadia Code", Consolas, monospace;
     letter-spacing: 0.12em;
     text-transform: uppercase;
     color: rgba(255, 255, 255, 0.3);
+  }
+
+  // ---- Narrow: a phone, or a small slot on a page ------------------------------
+  // The player keeps to one row and stands above the crowd rather than over
+  // it; the band, fans and moon scale down to fit.
+  @container ghost-jam (max-width: 600px) {
+    &__sky { top: 4%; right: 5%; width: 2.75rem; }
+
+    &__eyebrow { letter-spacing: 0.12em; }
+
+    &__band {
+      gap: 0.25rem;
+      max-height: 16rem;
+      padding-bottom: space(4);
+    }
+
+    &__dancer { height: 60%; }
+    &__dancer--dj { height: 88%; }
+    &__booth { width: 135%; }
+
+    &__fan {
+      width: calc(3.5rem * var(--s));
+      &.is-row-1 { bottom: 1.5rem; }
+      &.is-row-2 { bottom: 2.75rem; }
+    }
+
+    &__player {
+      width: calc(100% - #{space(4)});
+      // Room below for the crowd's heads and glow sticks.
+      padding-bottom: 5.5rem;
+    }
+
+    &__eq { height: 16px; margin-bottom: space(1); }
+
+    &__controls {
+      gap: space(3);
+      padding: space(1) space(2) space(1) space(1);
+    }
+
+    &__play {
+      min-width: 0;
+      padding: space(2) space(3);
+      gap: space(2);
+
+      small { display: none; }
+    }
+
+    // The timer keeps to one line; the status wraps beside it if it must.
+    &__track-top {
+      align-items: flex-start;
+      gap: space(2);
+      font-size: 0.6rem;
+
+      span:last-child { flex: none; white-space: nowrap; }
+    }
+
+    &__key { display: none; }
   }
 
   // ---- Playing: the dance. One beat is half a second at 120 BPM. -------------

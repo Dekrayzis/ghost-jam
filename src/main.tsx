@@ -1,8 +1,8 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { GhostJam } from "./GhostJam";
+import { GhostJam } from "./ghost-jam/GhostJam";
 import "./index.scss";
-import "./ghost-jam.scss";
+import "./sections/_ghost-jam.scss";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

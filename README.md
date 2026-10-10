@@ -26,6 +26,20 @@ Nothing that moves carries a CSS filter. Glows are painted once behind the ghost
 - With reduced motion set in the system, the ghosts, crowd, bat and wall hold still while the music plays.
 - The play button reports its state, and the status line ("Jamming · loop 3 · crowd of 21") is announced to screen readers.
 
+## How the code is laid out
+
+| File | What it holds |
+| --- | --- |
+| `src/ghost-jam/GhostJam.tsx` | The component: the sequencer, the wall, the stage and the player |
+| `src/ghost-jam/music.ts` | The track as data: tempo, beat pattern, chords, bass and melody |
+| `src/ghost-jam/synth.ts` | The instruments, built from a few shared building blocks |
+| `src/ghost-jam/crowd.ts` | The seeded crowd layout |
+| `src/ghost-jam/art.tsx` | The drawings: ghosts, booth, fans and bat |
+| `src/ghost-jam/palette.ts` | The light colours by name (the values live in the stylesheet) |
+| `src/sections/_ghost-jam.scss` | Every style and animation |
+
+The `ghost-jam` folder and the stylesheet are the same files as on the portfolio site, apart from `motion.ts`, which here reads the system's reduced-motion setting.
+
 ## Run it
 
 ```bash

@@ -1,6 +1,8 @@
 @use "sass:map";
 
-// The handful of design tokens Ghost Jam uses, as plain values.
+// The handful of design tokens Ghost Jam uses, as plain values. Laid out like
+// the portfolio's scss/abstracts, so sections/_ghost-jam.scss is the same
+// file in both places.
 
 $space: (
   2: 0.5rem,

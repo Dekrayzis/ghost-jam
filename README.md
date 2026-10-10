@@ -1,5 +1,7 @@
 # Ghost Jam
 
+![Ghost Jam mid-concert: a ghost DJ in orange headphones at the Ghost FM booth between two dancing ghosts, one with a bow and one in a witch's hat, under coloured spotlights and a crescent moon with a bat. Behind them the FizzBuzz wall is lit in orange, green and blue, and a crowd of ghost fans waves glow sticks at the front.](docs/screenshot.webp)
+
 A Halloween concert in the browser. FizzBuzz becomes a wall of a hundred lights (Boo for threes, Scary for fives, BooScary for both), three ghosts dance on stage to a track synthesised live with the Web Audio API, and a crowd of ghost fans fills the floor, one wave per loop, until the show sells out.
 
 No audio files and no images: every sound and every shape is made in code.
